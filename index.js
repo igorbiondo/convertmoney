@@ -3,17 +3,23 @@ const app = express()
 const path = require('path')
 
 const convert = require('./lib/convert')
+const apiCotacao = require('./lib/api-cotacao')
 
 app.set('view engine', 'ejs')
 app.set('viws', path.join(__dirname, 'views'))
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.get('/', (req, res) => {
-    res.render('home')
+const port = process.env.PORT || 3000
+
+app.get('/', async(req, res) => {
+    const cotacao = await apiCotacao.getCotacao()
+    res.render('home', {
+        cotacao
+    })
 })
 app.get('/cotacao', (req, res) => {
     const {cotacao, quantidade} = req.query
-    if(cotacao && quantidade) {
+    if(cotacao && quantidade && cotacao != Number) {
         const conversao = convert.convert(cotacao,quantidade)
         res.render('cotacao',{
             error: false,
@@ -28,7 +34,7 @@ app.get('/cotacao', (req, res) => {
     }
 })
 
-app.listen(3000, err => {
+app.listen(port, err => {
     if(err){
         console.log('Não foi possivel iniciar')
     }else{
